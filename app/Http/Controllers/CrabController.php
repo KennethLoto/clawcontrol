@@ -33,7 +33,8 @@ class CrabController extends Controller
     {
         Crab::create($request->validated());
 
-        return redirect()->route('crabs.index');
+        // return redirect()->route('crabs.index');
+        return redirect()->route('crabs.index')->with('success', 'Crab created successfully!');
     }
 
     /**
@@ -57,7 +58,7 @@ class CrabController extends Controller
     {
         $crab->update($request->validated());
 
-        return redirect()->route('crabs.index');
+        return redirect()->route('crabs.index')->with('success', 'Crab updated successfully!');
     }
 
     /**
@@ -66,6 +67,6 @@ class CrabController extends Controller
     public function destroy(Crab $crab)
     {
         $crab->delete();
-        return redirect()->route('crabs.index');
+        return redirect()->route('crabs.index')->with('success', 'Crab deleted successfully!');
     }
 }

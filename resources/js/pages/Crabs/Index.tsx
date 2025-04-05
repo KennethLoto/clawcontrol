@@ -6,9 +6,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import { ChevronLeft, ChevronRight, Pencil, PlusCircle, Search, Trash2, X } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -28,6 +28,14 @@ type Crab = {
     health_status: string;
     created_at: string;
     updated_at: string;
+};
+
+type PageProps = {
+    crabs: Crab[];
+    flash?: {
+        success?: string;
+        error?: string;
+    };
 };
 
 const GENDER_OPTIONS = ['All', 'Male', 'Female', 'Undetermined'];
@@ -52,7 +60,11 @@ const createColumns = (handleDeleteClick: (id: string) => void) => [
     {
         id: 'gender',
         header: 'Gender',
-        cell: (crab: Crab) => <Badge variant="outline">{crab.gender}</Badge>,
+        cell: (crab: Crab) => (
+            <Badge variant="outline" className="border-gray-400">
+                {crab.gender}
+            </Badge>
+        ),
     },
     {
         id: 'health_status',
@@ -60,7 +72,7 @@ const createColumns = (handleDeleteClick: (id: string) => void) => [
         cell: (crab: Crab) => {
             if (crab.health_status === 'Healthy') return <Badge className="bg-green-500">{crab.health_status}</Badge>;
             if (crab.health_status === 'Weak') return <Badge className="bg-yellow-500">{crab.health_status}</Badge>;
-            if (crab.health_status === 'Diseased') return <Badge className="bg-red-500">{crab.health_status}</Badge>;
+            if (crab.health_status === 'Diseased') return <Badge className="bg-destructive">{crab.health_status}</Badge>;
             return crab.health_status;
         },
     },
@@ -95,6 +107,7 @@ const createColumns = (handleDeleteClick: (id: string) => void) => [
 ];
 
 export default function Index({ crabs: initialCrabs }: { crabs: Crab[] }) {
+    const { flash } = usePage<PageProps>().props;
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [crabToDelete, setCrabToDelete] = useState<string | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
@@ -103,6 +116,12 @@ export default function Index({ crabs: initialCrabs }: { crabs: Crab[] }) {
     const [genderFilter, setGenderFilter] = useState('All');
     const [healthStatusFilter, setHealthStatusFilter] = useState('All');
 
+    useEffect(() => {
+        if (flash?.success) {
+            toast.success(flash.success);
+        }
+    }, [flash]);
+
     const handleDeleteClick = (crabId: string) => {
         setCrabToDelete(crabId);
         setDeleteDialogOpen(true);
@@ -110,24 +129,9 @@ export default function Index({ crabs: initialCrabs }: { crabs: Crab[] }) {
 
     const handleDeleteConfirm = () => {
         if (crabToDelete) {
-            toast.promise(
-                new Promise<void>(async (resolve, reject) => {
-                    try {
-                        await router.delete(`/crabs/${crabToDelete}`);
-                        setDeleteDialogOpen(false);
-                        resolve();
-                    } catch (error) {
-                        reject(error);
-                    }
-                }),
-                {
-                    loading: 'Deleting crab...',
-                    success: () => {
-                        return 'Crab deleted successfully';
-                    },
-                    error: 'Failed to delete crab',
-                },
-            );
+            router.delete(`/crabs/${crabToDelete}`, {
+                onSuccess: () => setDeleteDialogOpen(false),
+            });
         }
     };
 
@@ -259,7 +263,7 @@ export default function Index({ crabs: initialCrabs }: { crabs: Crab[] }) {
                             <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
                             <Input
                                 placeholder="Search crabs..."
-                                className="pl-10"
+                                className="border-gray-400 pl-10"
                                 value={searchTerm}
                                 onChange={(e) => {
                                     setSearchTerm(e.target.value);
