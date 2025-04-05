@@ -12,7 +12,14 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('crabs', function (Blueprint $table) {
-            $table->id();
+            $table->uuid('id')->primary();
+            $table->enum('species', ['Mud Crab']);
+            $table->string('age_value');
+            $table->enum('age_unit', ['days', 'weeks', 'months']);
+            $table->decimal('weight', 8, 2);
+            $table->enum('gender', ['Male', 'Female', 'Undetermined']);
+            // $table->uuid('pond_id');
+            $table->enum('health_status', ['Healthy', 'Weak', 'Diseased']);
             $table->timestamps();
         });
     }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Crab;
 use App\Http\Requests\StoreCrabRequest;
 use App\Http\Requests\UpdateCrabRequest;
+use Inertia\Inertia;
 
 class CrabController extends Controller
 {
@@ -13,7 +14,8 @@ class CrabController extends Controller
      */
     public function index()
     {
-        //
+        $crabs = Crab::orderBy('created_at', 'desc')->get();
+        return Inertia::render('Crabs/Index', compact('crabs'));
     }
 
     /**
@@ -21,7 +23,7 @@ class CrabController extends Controller
      */
     public function create()
     {
-        //
+        return Inertia::render('Crabs/Create');
     }
 
     /**
@@ -29,31 +31,33 @@ class CrabController extends Controller
      */
     public function store(StoreCrabRequest $request)
     {
-        //
+        Crab::create($request->validated());
+
+        return redirect()->route('crabs.index');
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(Crab $crab)
-    {
-        //
-    }
+    public function show(Crab $crab) {}
 
     /**
      * Show the form for editing the specified resource.
      */
     public function edit(Crab $crab)
     {
-        //
+        return Inertia::render('Crabs/Edit', [
+            'crab' => $crab
+        ]);
     }
-
     /**
      * Update the specified resource in storage.
      */
     public function update(UpdateCrabRequest $request, Crab $crab)
     {
-        //
+        $crab->update($request->validated());
+
+        return redirect()->route('crabs.index');
     }
 
     /**
@@ -61,6 +65,7 @@ class CrabController extends Controller
      */
     public function destroy(Crab $crab)
     {
-        //
+        $crab->delete();
+        return redirect()->route('crabs.index');
     }
 }

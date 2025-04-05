@@ -11,7 +11,7 @@ class StoreCrabRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -22,7 +22,12 @@ class StoreCrabRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'species' => 'required|in:Mud Crab',
+            'age_value' => 'required|integer|min:0',
+            'age_unit' => 'required|in:days,weeks,months',
+            'weight' => 'required|numeric|min:0',
+            'gender' => 'required|in:Male,Female,Undetermined',
+            'health_status' => 'required|in:Healthy,Weak,Diseased',
         ];
     }
 }

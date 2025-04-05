@@ -15,7 +15,7 @@ const mainNavItems: NavItem[] = [
     },
     {
         title: 'Crabs',
-        href: '/dashboard',
+        href: '/crabs',
         icon: Bug,
     },
 ];
