@@ -73,13 +73,20 @@ const createColumns = (handleDeleteClick: (id: string) => void) => [
         id: 'actions',
         header: 'Actions',
         cell: (crab: Crab) => (
-            <div className="flex justify-end gap-2">
+            <div className="flex gap-2">
                 <Link href={`/crabs/${crab.id}/edit`} prefetch>
-                    <Button variant="outline" size="icon">
+                    <Button
+                        variant="outline"
+                        className="hover:border-primary hover:bg-primary/10 hover:text-primary border-gray-400 transition-all duration-200 hover:scale-[1.05] hover:shadow-sm"
+                    >
                         <Pencil className="h-4 w-4" />
                     </Button>
                 </Link>
-                <Button variant="outline" size="icon" onClick={() => handleDeleteClick(crab.id)} className="hover:text-red-600">
+                <Button
+                    variant="destructive"
+                    className="hover:bg-destructive/90 transition-all duration-200 hover:scale-[1.05] hover:shadow-sm"
+                    onClick={() => handleDeleteClick(crab.id)}
+                >
                     <Trash2 className="h-4 w-4" />
                 </Button>
             </div>
@@ -165,7 +172,7 @@ export default function Index({ crabs: initialCrabs }: { crabs: Crab[] }) {
                 <div className="flex items-center justify-between">
                     <h1 className="text-lg font-bold">Crabs List</h1>
                     <Link href="/crabs/create" prefetch>
-                        <Button asChild variant="outline" className="border-gray-600">
+                        <Button asChild variant="default" className="border-gray-600">
                             <span className="flex items-center gap-2">
                                 <PlusCircle className="h-4 w-4" />
                                 Create Crab
@@ -186,7 +193,7 @@ export default function Index({ crabs: initialCrabs }: { crabs: Crab[] }) {
                                 setCurrentPage(1);
                             }}
                         >
-                            <SelectTrigger className="w-20">
+                            <SelectTrigger className="w-20 border-gray-400">
                                 <SelectValue placeholder="10" />
                             </SelectTrigger>
                             <SelectContent>
@@ -206,7 +213,7 @@ export default function Index({ crabs: initialCrabs }: { crabs: Crab[] }) {
                                 setCurrentPage(1);
                             }}
                         >
-                            <SelectTrigger className="w-32">
+                            <SelectTrigger className="w-32 border-gray-400">
                                 <SelectValue placeholder="Gender" />
                             </SelectTrigger>
                             <SelectContent>
@@ -226,7 +233,7 @@ export default function Index({ crabs: initialCrabs }: { crabs: Crab[] }) {
                                 setCurrentPage(1);
                             }}
                         >
-                            <SelectTrigger className="w-36">
+                            <SelectTrigger className="w-36 border-gray-400">
                                 <SelectValue placeholder="Health Status" />
                             </SelectTrigger>
                             <SelectContent>
@@ -268,9 +275,7 @@ export default function Index({ crabs: initialCrabs }: { crabs: Crab[] }) {
                         <TableHeader>
                             <TableRow>
                                 {columns.map((column) => (
-                                    <TableHead key={column.id} className={column.id === 'actions' ? 'text-right' : ''}>
-                                        {column.header}
-                                    </TableHead>
+                                    <TableHead key={column.id}>{column.header}</TableHead>
                                 ))}
                             </TableRow>
                         </TableHeader>
@@ -279,9 +284,7 @@ export default function Index({ crabs: initialCrabs }: { crabs: Crab[] }) {
                                 paginatedCrabs.map((crab) => (
                                     <TableRow key={crab.id}>
                                         {columns.map((column) => (
-                                            <TableCell key={`${crab.id}-${column.id}`} className={column.id === 'actions' ? 'text-right' : ''}>
-                                                {column.cell(crab)}
-                                            </TableCell>
+                                            <TableCell key={`${crab.id}-${column.id}`}>{column.cell(crab)}</TableCell>
                                         ))}
                                     </TableRow>
                                 ))

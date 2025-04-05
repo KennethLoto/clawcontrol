@@ -9,7 +9,7 @@ import AppLayout from '@/layouts/app-layout';
 import { cn } from '@/lib/utils';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, useForm } from '@inertiajs/react';
-import { Badge, BadgeCheck, Check, ChevronsUpDown, CircleX, LoaderCircle, Pencil } from 'lucide-react';
+import { Badge, BadgeCheck, Check, ChevronsUpDown, CircleX, LoaderCircle } from 'lucide-react';
 import { useState } from 'react';
 
 const breadcrumbs = (id: string | number): BreadcrumbItem[] => [
@@ -70,10 +70,7 @@ export default function Edit({ crab }: { crab: any }) {
             <div className="container mx-auto p-4">
                 <Card className="mx-auto max-w-lg">
                     <CardHeader>
-                        <CardTitle className="flex items-center justify-center gap-2">
-                            <Pencil className="h-5 w-5" />
-                            Edit Crab
-                        </CardTitle>
+                        <CardTitle className="flex items-center justify-center gap-2">Edit Crab</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <form onSubmit={submit} className="space-y-6">
