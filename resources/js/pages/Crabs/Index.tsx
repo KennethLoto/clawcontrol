@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import { ChevronLeft, ChevronRight, Pencil, PlusCircle, Search, Trash2, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, LoaderCircle, Pencil, PlusCircle, Search, Trash2, X } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -21,6 +21,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 type Crab = {
     id: string;
+    tag_id: string;
     species: string;
     age_value: string;
     age_unit: string;
@@ -47,6 +48,11 @@ const createColumns = (handleDeleteClick: (id: string) => void) => [
         id: 'number',
         header: '#',
         cell: (_: Crab, index: number) => index + 1,
+    },
+    {
+        id: 'tag_id',
+        header: 'Tag ID',
+        cell: (crab: Crab) => crab.tag_id,
     },
     {
         id: 'species',
@@ -124,6 +130,8 @@ const createColumns = (handleDeleteClick: (id: string) => void) => [
 
 export default function Index({ crabs: initialCrabs }: { crabs: Crab[] }) {
     const { flash } = usePage<PageProps>().props;
+    const [processingDelete, setProcessingDelete] = useState(false);
+    const [isDelayed, setIsDelayed] = useState(false);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [crabToDelete, setCrabToDelete] = useState<string | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
@@ -131,6 +139,7 @@ export default function Index({ crabs: initialCrabs }: { crabs: Crab[] }) {
     const [itemsPerPage, setItemsPerPage] = useState(10);
     const [genderFilter, setGenderFilter] = useState('All');
     const [healthStatusFilter, setHealthStatusFilter] = useState('All');
+    const [removalReason, setRemovalReason] = useState<string | null>(null);
 
     useEffect(() => {
         if (flash?.success) {
@@ -138,17 +147,45 @@ export default function Index({ crabs: initialCrabs }: { crabs: Crab[] }) {
         }
     }, [flash]);
 
+    const handleCreateClick = (e: React.MouseEvent) => {
+        if (isDelayed) {
+            e.preventDefault();
+            return;
+        }
+
+        setIsDelayed(true);
+        setTimeout(() => {
+            setIsDelayed(false);
+        }, 2000);
+    };
+
     const handleDeleteClick = (crabId: string) => {
         setCrabToDelete(crabId);
         setDeleteDialogOpen(true);
     };
 
     const handleDeleteConfirm = () => {
-        if (crabToDelete) {
+        if (crabToDelete && removalReason) {
+            setProcessingDelete(true); // Start loading
             router.delete(`/crabs/${crabToDelete}`, {
-                onSuccess: () => setDeleteDialogOpen(false),
+                data: { removal_reason: removalReason },
+                onSuccess: () => {
+                    setDeleteDialogOpen(false);
+                    setRemovalReason(null);
+                    setProcessingDelete(false); // Stop loading
+                },
+                onError: () => {
+                    setProcessingDelete(false); // Stop loading on error too
+                },
             });
+        } else {
+            toast.error('Please select a removal reason.');
         }
+    };
+
+    const handleDialogClose = () => {
+        setDeleteDialogOpen(false);
+        setProcessingDelete(false);
     };
 
     const clearFilters = () => {
@@ -163,6 +200,7 @@ export default function Index({ crabs: initialCrabs }: { crabs: Crab[] }) {
         return initialCrabs.filter((crab) => {
             const matchesSearch =
                 crab.species.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                crab.tag_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 crab.gender.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 crab.health_status.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 crab.age_value.toString().includes(searchTerm) ||
@@ -424,7 +462,7 @@ export default function Index({ crabs: initialCrabs }: { crabs: Crab[] }) {
                 </Card>
             </div>
 
-            <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+            <Dialog open={deleteDialogOpen} onOpenChange={handleDialogClose}>
                 <DialogContent className="dark:bg-gray-900 dark:text-white">
                     <DialogHeader>
                         <DialogTitle className="dark:text-white">Confirm Deletion</DialogTitle>
@@ -432,6 +470,19 @@ export default function Index({ crabs: initialCrabs }: { crabs: Crab[] }) {
                             Are you sure you want to delete this crab? This action cannot be undone.
                         </DialogDescription>
                     </DialogHeader>
+                    <div className="mb-4">
+                        <Select value={removalReason || ''} onValueChange={(value: string) => setRemovalReason(value)}>
+                            <SelectTrigger className="w-full border-gray-400 dark:border-gray-700 dark:bg-gray-800 dark:text-white">
+                                <SelectValue placeholder="Select a removal reason" />
+                            </SelectTrigger>
+                            <SelectContent className="dark:bg-gray-800 dark:text-white">
+                                <SelectItem value="Sold">Sold</SelectItem>
+                                <SelectItem value="Died">Died</SelectItem>
+                                <SelectItem value="Harvested">Harvested</SelectItem>
+                                <SelectItem value="Other">Other</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
                     <DialogFooter>
                         <Button
                             variant="outline"
@@ -440,8 +491,15 @@ export default function Index({ crabs: initialCrabs }: { crabs: Crab[] }) {
                         >
                             Cancel
                         </Button>
-                        <Button variant="destructive" onClick={handleDeleteConfirm}>
-                            Delete
+                        <Button variant="destructive" onClick={handleDeleteConfirm} disabled={processingDelete}>
+                            {processingDelete ? (
+                                <span className="flex items-center gap-2">
+                                    <LoaderCircle className="h-4 w-4 animate-spin" />
+                                    Deleting...
+                                </span>
+                            ) : (
+                                'Delete'
+                            )}
                         </Button>
                     </DialogFooter>
                 </DialogContent>

@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\DeleteCrabRequest;
 use App\Models\Crab;
 use App\Http\Requests\StoreCrabRequest;
 use App\Http\Requests\UpdateCrabRequest;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class CrabController extends Controller
@@ -31,9 +34,15 @@ class CrabController extends Controller
      */
     public function store(StoreCrabRequest $request)
     {
-        Crab::create($request->validated());
+        // Generate tag_id
+        $tag_id = $this->generateTagId();
 
-        // return redirect()->route('crabs.index');
+        // Merge tag_id into validated data
+        $data = array_merge($request->validated(), ['tag_id' => $tag_id]);
+
+        // Create crab
+        Crab::create($data);
+
         return redirect()->route('crabs.index')->with('success', 'Crab created successfully!');
     }
 
@@ -64,9 +73,28 @@ class CrabController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Crab $crab)
+
+    public function destroy(DeleteCrabRequest $request, Crab $crab)
     {
+        $crab->update([
+            'removal_reason' => $request->validated('removal_reason'),
+        ]);
+
         $crab->delete();
-        return redirect()->route('crabs.index')->with('success', 'Crab deleted successfully!');
+
+        return redirect()->route('crabs.index')
+            ->with('success', 'Crab deleted successfully.');
+    }
+
+    /**
+     * Generate a unique tag_id: CRB-YYYY-MM-DD-0001
+     */
+    private function generateTagId(): string
+    {
+        $today = now()->format('Y-m-d');
+        $lastSeq = (int) substr(Crab::withTrashed()
+            ->where('tag_id', 'like', "CRB-{$today}-%")
+            ->latest('tag_id')->value('tag_id') ?? '', -4);
+        return "CRB-{$today}-" . str_pad($lastSeq + 1, 4, '0', STR_PAD_LEFT);
     }
 }
