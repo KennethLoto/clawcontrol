@@ -95,6 +95,6 @@ class CrabController extends Controller
         $lastSeq = (int) substr(Crab::withTrashed()
             ->where('tag_id', 'like', "CRB-{$today}-%")
             ->latest('tag_id')->value('tag_id') ?? '', -4);
-        return "CRB-{$today}-" . str_pad($lastSeq + 1, 4, '0', STR_PAD_LEFT);
+        return "CRB-{$today}-" . str_pad($lastSeq > 0 ? $lastSeq + 1 : 1, 4, '0', STR_PAD_LEFT);
     }
 }

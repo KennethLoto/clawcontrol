@@ -23,6 +23,6 @@ class DatabaseSeeder extends Seeder
             'email_verified_at' => now(),
         ]);
 
-        Crab::factory(20)->create();
+        Crab::factory(10)->create();
     }
 }
