@@ -129,7 +129,7 @@ export default function Create() {
                                         value={data.age_value}
                                         onChange={(e) => setData('age_value', e.target.value)}
                                         min="0"
-                                        placeholder="e.g. 3"
+                                        placeholder="e.g. 1"
                                     />
                                     <InputError className="mt-2" message={errors.age_value} />
                                 </div>
@@ -180,7 +180,7 @@ export default function Create() {
 
                             {/* Weight Field */}
                             <div className="grid gap-2">
-                                <Label htmlFor="weight">Weight (kg)</Label>
+                                <Label htmlFor="weight">Weight (g)</Label>
                                 <Input
                                     id="weight"
                                     type="number"
@@ -188,7 +188,7 @@ export default function Create() {
                                     value={data.weight}
                                     onChange={(e) => setData('weight', e.target.value)}
                                     min="0"
-                                    placeholder="e.g. 1.25"
+                                    placeholder="e.g. 150"
                                 />
                                 <InputError className="mt-2" message={errors.weight} />
                             </div>

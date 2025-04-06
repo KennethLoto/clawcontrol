@@ -479,7 +479,7 @@ export default function Index({ crabs: initialCrabs }: { crabs: Crab[] }) {
                         >
                             Cancel
                         </Button>
-                        <Button variant="destructive" onClick={handleDeleteConfirm} disabled={processingDelete}>
+                        <Button variant="destructive" onClick={handleDeleteConfirm} disabled={processingDelete || !removalReason}>
                             {processingDelete ? (
                                 <span className="flex items-center gap-2">
                                     <LoaderCircle className="h-4 w-4 animate-spin" />
