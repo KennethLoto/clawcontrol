@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('ponds', function (Blueprint $table) {
             $table->uuid('id')->primary();
+            $table->string('tag_id')->unique()->index();
             $table->enum('location', ['Inland Brackish Pond Zone', 'Coastal Pond Zone', 'River Pond Area']);
             $table->float('size');
             $table->enum('water_type', ['Brackish', 'Fresh']);
@@ -23,7 +24,14 @@ return new class extends Migration
             $table->integer('crab_population')->nullable();
             $table->text('water_quality_log')->nullable();
             $table->text('maintenance_notes')->nullable();
+            $table->enum('removal_reason', [
+                'Decommissioned',
+                'Renovation',
+                'Damaged',
+                'Other',
+            ])->nullable();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

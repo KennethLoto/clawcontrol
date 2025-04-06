@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\DeletePondRequest;
 use App\Models\Pond;
 use App\Http\Requests\StorePondRequest;
 use App\Http\Requests\UpdatePondRequest;
@@ -14,9 +15,8 @@ class PondController extends Controller
      */
     public function index()
     {
-        return Inertia::render('Ponds/Index', [
-            'ponds' => Pond::all(),
-        ]);
+        $ponds = Pond::orderBy('created_at', 'desc')->get();
+        return Inertia::render('Ponds/Index', ['ponds' => $ponds]);
     }
 
     /**
@@ -32,7 +32,14 @@ class PondController extends Controller
      */
     public function store(StorePondRequest $request)
     {
-        Pond::create($request->validated());
+        // Generate tag_id
+        $tag_id = $this->generateTagId();
+
+        // Merge tag_id into validated data
+        $data = array_merge($request->validated(), ['tag_id' => $tag_id]);
+
+        // Create crab
+        Pond::create($data);
 
         return redirect()->route('ponds.index')->with('success', 'Pond created successfully!');
     }
@@ -71,11 +78,24 @@ class PondController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Pond $pond)
+    public function destroy(DeletePondRequest $request, Pond $pond)
     {
+        $pond->update([
+            'removal_reason' => $request->validated('removal_reason'),
+        ]);
+
         $pond->delete();
 
         return redirect()->route('ponds.index')
             ->with('success', 'Pond deleted successfully');
+    }
+
+    private function generateTagId(): string
+    {
+        $today = now()->format('Y-m-d');
+        $lastSeq = (int) substr(Pond::withTrashed()
+            ->where('tag_id', 'like', "PND-{$today}-%")
+            ->latest('tag_id')->value('tag_id') ?? '', -4);
+        return "PND-{$today}-" . str_pad($lastSeq > 0 ? $lastSeq + 1 : 1, 4, '0', STR_PAD_LEFT);
     }
 }

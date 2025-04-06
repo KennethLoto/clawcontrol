@@ -21,6 +21,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 type Pond = {
     id: string;
+    tag_id: string;
     location: string; // Changed from enum to string
     size: number;
     water_type: 'Brackish' | 'Fresh';
@@ -45,6 +46,11 @@ const createColumns = (handleDeleteClick: (id: string) => void) => [
         id: 'number',
         header: '#',
         cell: (_: Pond, index: number) => index + 1,
+    },
+    {
+        id: 'tag_id',
+        header: 'Tag ID',
+        cell: (pond: Pond) => pond.tag_id,
     },
     {
         id: 'location',
@@ -481,8 +487,8 @@ export default function Index({ ponds: initialPonds }: PageProps) {
                             </SelectTrigger>
                             <SelectContent className="dark:bg-gray-800 dark:text-white">
                                 <SelectItem value="Decommissioned">Decommissioned</SelectItem>
-                                <SelectItem value="Repurposed">Repurposed</SelectItem>
-                                <SelectItem value="Maintenance">Maintenance</SelectItem>
+                                <SelectItem value="Renovation">Renovation</SelectItem>
+                                <SelectItem value="Damaged">Damaged</SelectItem>
                                 <SelectItem value="Other">Other</SelectItem>
                             </SelectContent>
                         </Select>
