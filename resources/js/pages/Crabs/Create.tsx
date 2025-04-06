@@ -18,7 +18,7 @@ const breadcrumbs: BreadcrumbItem[] = [
         href: '/crabs',
     },
     {
-        title: 'Create',
+        title: 'Add',
         href: '/crabs/create',
     },
 ];
@@ -66,11 +66,11 @@ export default function Create() {
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Create New Crab" />
+            <Head title="Add New Crab" />
             <div className="container mx-auto p-4">
                 <Card className="mx-auto max-w-lg">
                     <CardHeader>
-                        <CardTitle className="text-center">Create New Crab</CardTitle>
+                        <CardTitle className="text-center">Add New Crab</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <form onSubmit={submit} className="space-y-6">

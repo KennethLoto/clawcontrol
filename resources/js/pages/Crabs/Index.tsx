@@ -90,7 +90,7 @@ const createColumns = (handleDeleteClick: (id: string) => void) => [
     },
     {
         id: 'created_at',
-        header: 'Created At',
+        header: 'Added At',
         cell: (crab: Crab) => {
             const date = new Date(crab.created_at);
             return date.toLocaleString('en-US', {
@@ -146,18 +146,6 @@ export default function Index({ crabs: initialCrabs }: { crabs: Crab[] }) {
             toast.success(flash.success);
         }
     }, [flash]);
-
-    const handleCreateClick = (e: React.MouseEvent) => {
-        if (isDelayed) {
-            e.preventDefault();
-            return;
-        }
-
-        setIsDelayed(true);
-        setTimeout(() => {
-            setIsDelayed(false);
-        }, 2000);
-    };
 
     const handleDeleteClick = (crabId: string) => {
         setCrabToDelete(crabId);
@@ -234,7 +222,7 @@ export default function Index({ crabs: initialCrabs }: { crabs: Crab[] }) {
                             <Button asChild variant="default" className="border-gray-600 dark:border-gray-700">
                                 <span className="flex items-center gap-2">
                                     <PlusCircle className="h-4 w-4" />
-                                    Create Crab
+                                    Add Crab
                                 </span>
                             </Button>
                         </Link>
@@ -269,7 +257,7 @@ export default function Index({ crabs: initialCrabs }: { crabs: Crab[] }) {
                                                 setCurrentPage(1);
                                             }}
                                         >
-                                            <SelectTrigger className="w-full border-gray-400 sm:w-20 dark:border-gray-700 dark:bg-gray-800 dark:text-white">
+                                            <SelectTrigger className="w-full border-gray-400 sm:w-18 dark:border-gray-700 dark:bg-gray-800 dark:text-white">
                                                 <SelectValue placeholder="10" />
                                             </SelectTrigger>
                                             <SelectContent className="dark:bg-gray-800 dark:text-white">
@@ -311,7 +299,7 @@ export default function Index({ crabs: initialCrabs }: { crabs: Crab[] }) {
                                                 setCurrentPage(1);
                                             }}
                                         >
-                                            <SelectTrigger className="w-full border-gray-400 sm:w-36 dark:border-gray-700 dark:bg-gray-800 dark:text-white">
+                                            <SelectTrigger className="w-full border-gray-400 sm:w-32 dark:border-gray-700 dark:bg-gray-800 dark:text-white">
                                                 <SelectValue placeholder="Health Status" />
                                             </SelectTrigger>
                                             <SelectContent className="dark:bg-gray-800 dark:text-white">

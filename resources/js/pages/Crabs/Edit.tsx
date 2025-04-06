@@ -18,7 +18,7 @@ const breadcrumbs = (id: string | number): BreadcrumbItem[] => [
         href: '/crabs',
     },
     {
-        title: 'Edit Crab',
+        title: 'Edit',
         href: `/crabs/${id}/edit`,
     },
 ];
