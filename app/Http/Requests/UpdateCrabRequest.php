@@ -28,6 +28,7 @@ class UpdateCrabRequest extends FormRequest
             'weight' => 'sometimes|required|numeric|min:0',
             'gender' => 'sometimes|required|in:Male,Female,Undetermined',
             'health_status' => 'sometimes|required|in:Healthy,Weak,Diseased',
+            'pond_id' => 'required|exists:ponds,id',
         ];
     }
 }

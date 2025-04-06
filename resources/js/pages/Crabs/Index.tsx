@@ -30,18 +30,29 @@ type Crab = {
     health_status: string;
     created_at: string;
     updated_at: string;
+    pond?: {
+        id: string;
+        pond_id: string;
+        location: string;
+    };
 };
 
 type PageProps = {
     crabs: Crab[];
+    filters?: {
+        ponds?: Array<{ value: string; label: string }>;
+        enums?: {
+            species?: Array<{ value: string; label: string }>;
+            gender?: Array<{ value: string; label: string }>;
+            health_status?: Array<{ value: string; label: string }>;
+            age_unit?: Array<{ value: string; label: string }>;
+        };
+    };
     flash?: {
         success?: string;
         error?: string;
     };
 };
-
-const GENDER_OPTIONS = ['All', 'Male', 'Female', 'Undetermined'];
-const HEALTH_STATUS_OPTIONS = ['All', 'Healthy', 'Weak', 'Diseased'];
 
 const createColumns = (handleDeleteClick: (id: string) => void) => [
     {
@@ -60,14 +71,9 @@ const createColumns = (handleDeleteClick: (id: string) => void) => [
         cell: (crab: Crab) => crab.species,
     },
     {
-        id: 'age',
-        header: 'Age',
-        cell: (crab: Crab) => `${crab.age_value} ${crab.age_unit}`,
-    },
-    {
-        id: 'weight',
-        header: 'Weight (g)',
-        cell: (crab: Crab) => crab.weight,
+        id: 'pond',
+        header: 'Pond',
+        cell: (crab: Crab) => crab.pond?.pond_id || 'N/A',
     },
     {
         id: 'gender',
@@ -82,10 +88,11 @@ const createColumns = (handleDeleteClick: (id: string) => void) => [
         id: 'health_status',
         header: 'Health Status',
         cell: (crab: Crab) => {
-            if (crab.health_status === 'Healthy') return <Badge className="bg-green-500 dark:bg-green-600">{crab.health_status}</Badge>;
-            if (crab.health_status === 'Weak') return <Badge className="bg-yellow-500 dark:bg-yellow-600">{crab.health_status}</Badge>;
-            if (crab.health_status === 'Diseased') return <Badge className="bg-destructive">{crab.health_status}</Badge>;
-            return crab.health_status;
+            const status = crab.health_status.toLowerCase();
+            if (status.includes('healthy')) return <Badge className="bg-green-500 dark:bg-green-600">{crab.health_status}</Badge>;
+            if (status.includes('weak')) return <Badge className="bg-yellow-500 dark:bg-yellow-600">{crab.health_status}</Badge>;
+            if (status.includes('disease')) return <Badge className="bg-destructive">{crab.health_status}</Badge>;
+            return <Badge variant="outline">{crab.health_status}</Badge>;
         },
     },
     {
@@ -128,10 +135,9 @@ const createColumns = (handleDeleteClick: (id: string) => void) => [
     },
 ];
 
-export default function Index({ crabs: initialCrabs }: { crabs: Crab[] }) {
+export default function Index({ crabs: initialCrabs, filters = {} }: PageProps) {
     const { flash } = usePage<PageProps>().props;
     const [processingDelete, setProcessingDelete] = useState(false);
-    const [isDelayed, setIsDelayed] = useState(false);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [crabToDelete, setCrabToDelete] = useState<string | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
@@ -139,7 +145,20 @@ export default function Index({ crabs: initialCrabs }: { crabs: Crab[] }) {
     const [itemsPerPage, setItemsPerPage] = useState(10);
     const [genderFilter, setGenderFilter] = useState('All');
     const [healthStatusFilter, setHealthStatusFilter] = useState('All');
+    const [speciesFilter, setSpeciesFilter] = useState('All');
+    const [pondFilter, setPondFilter] = useState('All');
     const [removalReason, setRemovalReason] = useState<string | null>(null);
+
+    // Provide default values for filters
+    const {
+        ponds = [],
+        enums = {
+            species: [],
+            gender: [],
+            health_status: [],
+            age_unit: [],
+        },
+    } = filters;
 
     useEffect(() => {
         if (flash?.success) {
@@ -154,16 +173,16 @@ export default function Index({ crabs: initialCrabs }: { crabs: Crab[] }) {
 
     const handleDeleteConfirm = () => {
         if (crabToDelete && removalReason) {
-            setProcessingDelete(true); // Start loading
+            setProcessingDelete(true);
             router.delete(`/crabs/${crabToDelete}`, {
                 data: { removal_reason: removalReason },
                 onSuccess: () => {
                     setDeleteDialogOpen(false);
                     setRemovalReason(null);
-                    setProcessingDelete(false); // Stop loading
+                    setProcessingDelete(false);
                 },
                 onError: () => {
-                    setProcessingDelete(false); // Stop loading on error too
+                    setProcessingDelete(false);
                 },
             });
         } else {
@@ -180,26 +199,26 @@ export default function Index({ crabs: initialCrabs }: { crabs: Crab[] }) {
         setSearchTerm('');
         setGenderFilter('All');
         setHealthStatusFilter('All');
+        setSpeciesFilter('All');
+        setPondFilter('All');
         setCurrentPage(1);
     };
 
-    // Filter crabs based on search and filters
     const filteredCrabs = useMemo(() => {
         return initialCrabs.filter((crab) => {
             const matchesSearch =
                 crab.species.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 crab.tag_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                crab.gender.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                crab.health_status.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                crab.age_value.toString().includes(searchTerm) ||
-                crab.weight.toString().includes(searchTerm);
+                (crab.pond?.pond_id.toLowerCase().includes(searchTerm.toLowerCase()) ?? false);
 
             const matchesGender = genderFilter === 'All' || crab.gender === genderFilter;
             const matchesHealthStatus = healthStatusFilter === 'All' || crab.health_status === healthStatusFilter;
+            const matchesSpecies = speciesFilter === 'All' || crab.species === speciesFilter;
+            const matchesPond = pondFilter === 'All' || crab.pond?.pond_id === pondFilter;
 
-            return matchesSearch && matchesGender && matchesHealthStatus;
+            return matchesSearch && matchesGender && matchesHealthStatus && matchesSpecies && matchesPond;
         });
-    }, [initialCrabs, searchTerm, genderFilter, healthStatusFilter]);
+    }, [initialCrabs, searchTerm, genderFilter, healthStatusFilter, speciesFilter, pondFilter]);
 
     const totalPages = Math.ceil(filteredCrabs.length / itemsPerPage);
     const paginatedCrabs = useMemo(() => {
@@ -209,7 +228,7 @@ export default function Index({ crabs: initialCrabs }: { crabs: Crab[] }) {
 
     const columns = createColumns(handleDeleteClick);
 
-    const hasFilters = searchTerm || genderFilter !== 'All' || healthStatusFilter !== 'All';
+    const hasFilters = searchTerm || genderFilter !== 'All' || healthStatusFilter !== 'All' || speciesFilter !== 'All' || pondFilter !== 'All';
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -228,9 +247,8 @@ export default function Index({ crabs: initialCrabs }: { crabs: Crab[] }) {
                         </Link>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                        {/* Filters and Controls */}
                         <div className="flex flex-col gap-4">
-                            {/* Mobile Search - Shown only on small screens */}
+                            {/* Mobile Search */}
                             <div className="block sm:hidden">
                                 <div className="relative w-full">
                                     <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400 dark:text-gray-500" />
@@ -247,7 +265,7 @@ export default function Index({ crabs: initialCrabs }: { crabs: Crab[] }) {
                             </div>
 
                             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                                {/* Left side - Filters */}
+                                {/* Filters */}
                                 <div className="grid grid-cols-2 gap-3 sm:flex sm:flex-row sm:items-center sm:gap-4">
                                     <div className="col-span-2 sm:col-auto">
                                         <Select
@@ -272,6 +290,50 @@ export default function Index({ crabs: initialCrabs }: { crabs: Crab[] }) {
 
                                     <div className="col-span-1">
                                         <Select
+                                            value={speciesFilter}
+                                            onValueChange={(value) => {
+                                                setSpeciesFilter(value);
+                                                setCurrentPage(1);
+                                            }}
+                                        >
+                                            <SelectTrigger className="w-full border-gray-400 sm:w-32 dark:border-gray-700 dark:bg-gray-800 dark:text-white">
+                                                <SelectValue placeholder="Species" />
+                                            </SelectTrigger>
+                                            <SelectContent className="dark:bg-gray-800 dark:text-white">
+                                                <SelectItem value="All">All</SelectItem>
+                                                {enums.species?.map((species) => (
+                                                    <SelectItem key={species.value} value={species.value} className="dark:hover:bg-gray-700">
+                                                        {species.label}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+
+                                    <div className="col-span-1">
+                                        <Select
+                                            value={pondFilter}
+                                            onValueChange={(value) => {
+                                                setPondFilter(value);
+                                                setCurrentPage(1);
+                                            }}
+                                        >
+                                            <SelectTrigger className="w-full border-gray-400 sm:w-32 dark:border-gray-700 dark:bg-gray-800 dark:text-white">
+                                                <SelectValue placeholder="Pond" />
+                                            </SelectTrigger>
+                                            <SelectContent className="dark:bg-gray-800 dark:text-white">
+                                                <SelectItem value="All">All</SelectItem>
+                                                {ponds?.map((pond) => (
+                                                    <SelectItem key={pond.value} value={pond.value} className="dark:hover:bg-gray-700">
+                                                        {pond.label}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+
+                                    <div className="col-span-1">
+                                        <Select
                                             value={genderFilter}
                                             onValueChange={(value) => {
                                                 setGenderFilter(value);
@@ -282,9 +344,10 @@ export default function Index({ crabs: initialCrabs }: { crabs: Crab[] }) {
                                                 <SelectValue placeholder="Gender" />
                                             </SelectTrigger>
                                             <SelectContent className="dark:bg-gray-800 dark:text-white">
-                                                {GENDER_OPTIONS.map((gender) => (
-                                                    <SelectItem key={gender} value={gender} className="dark:hover:bg-gray-700">
-                                                        {gender}
+                                                <SelectItem value="All">All</SelectItem>
+                                                {enums.gender?.map((gender) => (
+                                                    <SelectItem key={gender.value} value={gender.value} className="dark:hover:bg-gray-700">
+                                                        {gender.label}
                                                     </SelectItem>
                                                 ))}
                                             </SelectContent>
@@ -303,9 +366,10 @@ export default function Index({ crabs: initialCrabs }: { crabs: Crab[] }) {
                                                 <SelectValue placeholder="Health Status" />
                                             </SelectTrigger>
                                             <SelectContent className="dark:bg-gray-800 dark:text-white">
-                                                {HEALTH_STATUS_OPTIONS.map((status) => (
-                                                    <SelectItem key={status} value={status} className="dark:hover:bg-gray-700">
-                                                        {status}
+                                                <SelectItem value="All">All</SelectItem>
+                                                {enums.health_status?.map((status) => (
+                                                    <SelectItem key={status.value} value={status.value} className="dark:hover:bg-gray-700">
+                                                        {status.label}
                                                     </SelectItem>
                                                 ))}
                                             </SelectContent>
@@ -326,7 +390,7 @@ export default function Index({ crabs: initialCrabs }: { crabs: Crab[] }) {
                                     )}
                                 </div>
 
-                                {/* Desktop Search - Shown only on larger screens */}
+                                {/* Desktop Search */}
                                 <div className="hidden sm:block">
                                     <div className="relative w-full sm:w-64">
                                         <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400 dark:text-gray-500" />
@@ -344,6 +408,7 @@ export default function Index({ crabs: initialCrabs }: { crabs: Crab[] }) {
                             </div>
                         </div>
 
+                        {/* Table */}
                         <div className="rounded-md border border-gray-200 dark:border-gray-700">
                             <Table>
                                 <TableHeader className="bg-gray-100 dark:bg-gray-800">
@@ -369,9 +434,7 @@ export default function Index({ crabs: initialCrabs }: { crabs: Crab[] }) {
                                     ) : (
                                         <TableRow>
                                             <TableCell colSpan={columns.length} className="h-24 text-center dark:text-gray-300">
-                                                {filteredCrabs.length === 0 && (searchTerm || genderFilter !== 'All' || healthStatusFilter !== 'All')
-                                                    ? 'No crabs match your filters.'
-                                                    : 'No crabs found.'}
+                                                {filteredCrabs.length === 0 && hasFilters ? 'No crabs match your filters.' : 'No crabs found.'}
                                             </TableCell>
                                         </TableRow>
                                     )}
@@ -379,7 +442,7 @@ export default function Index({ crabs: initialCrabs }: { crabs: Crab[] }) {
                             </Table>
                         </div>
 
-                        {/* Pagination Controls */}
+                        {/* Pagination */}
                         {filteredCrabs.length > 0 && (
                             <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
                                 <div className="text-sm text-gray-600 dark:text-gray-400">
@@ -450,6 +513,7 @@ export default function Index({ crabs: initialCrabs }: { crabs: Crab[] }) {
                 </Card>
             </div>
 
+            {/* Delete Dialog */}
             <Dialog open={deleteDialogOpen} onOpenChange={handleDialogClose}>
                 <DialogContent className="dark:bg-gray-900 dark:text-white">
                     <DialogHeader>

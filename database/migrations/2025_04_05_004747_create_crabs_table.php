@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('crabs', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('tag_id')->unique()->index();
+            $table->string('pond_id');
             $table->enum('species', ['Mud Crab']);
             $table->string('age_value');
             $table->enum('age_unit', ['days', 'weeks', 'months']);
@@ -23,6 +24,11 @@ return new class extends Migration
             $table->enum('removal_reason', ['Sold', 'Died', 'Harvested', 'Other'])->nullable();
             $table->timestamps();
             $table->softDeletes();
+
+            $table->foreign('pond_id')  // Add foreign key constraint
+                ->references('id')
+                ->on('ponds')
+                ->onDelete('cascade');
         });
     }
 

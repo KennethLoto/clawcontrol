@@ -2,23 +2,44 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\AgeUnit;
+use App\Enums\Gender;
+use App\Enums\HealthStatus;
+use App\Enums\Species;
+use App\Http\Controllers\Traits\HasCrabsEnum;
 use App\Http\Requests\DeleteCrabRequest;
 use App\Models\Crab;
 use App\Http\Requests\StoreCrabRequest;
 use App\Http\Requests\UpdateCrabRequest;
+use App\Models\Pond;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class CrabController extends Controller
 {
+    use HasCrabsEnum;
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        $crabs = Crab::orderBy('created_at', 'desc')->get();
-        return Inertia::render('Crabs/Index', compact('crabs'));
+        $crabs = Crab::with('pond')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        $pondTags = Pond::select('id', 'pond_id as value', 'pond_id as label')
+            ->orderBy('pond_id')
+            ->get()
+            ->unique('value');
+
+        return Inertia::render('Crabs/Index', [
+            'crabs' => $crabs,
+            'filters' => [
+                'ponds' => Pond::select('pond_id as value', 'pond_id as label')->get()->toArray(),
+                'enums' => $this->getCrabEnums() // Reuse the trait method
+            ]
+        ]);
     }
 
     /**
@@ -26,7 +47,10 @@ class CrabController extends Controller
      */
     public function create()
     {
-        return Inertia::render('Crabs/Create');
+        return Inertia::render('Crabs/Create', [
+            'ponds' => Pond::select('id', 'pond_id', 'location')->get(),
+            'enums' => $this->getCrabEnums(),
+        ]);
     }
 
     /**
@@ -57,7 +81,9 @@ class CrabController extends Controller
     public function edit(Crab $crab)
     {
         return Inertia::render('Crabs/Edit', [
-            'crab' => $crab
+            'crab' => $crab,
+            'ponds' => Pond::select('id', 'pond_id', 'location')->get(),
+            'enums' => $this->getCrabEnums(),
         ]);
     }
     /**

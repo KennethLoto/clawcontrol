@@ -28,6 +28,7 @@ class StoreCrabRequest extends FormRequest
             'weight' => 'required|numeric|min:0',
             'gender' => 'required|in:Male,Female,Undetermined',
             'health_status' => 'required|in:Healthy,Weak,Diseased',
+            'pond_id' => 'required|exists:ponds,id',
         ];
     }
 }

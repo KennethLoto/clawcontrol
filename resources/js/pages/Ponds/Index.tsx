@@ -21,7 +21,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 type Pond = {
     id: string;
-    tag_id: string;
+    pond_id: string;
     location: string; // Changed from enum to string
     size: number;
     water_type: 'Brackish' | 'Fresh';
@@ -48,9 +48,9 @@ const createColumns = (handleDeleteClick: (id: string) => void) => [
         cell: (_: Pond, index: number) => index + 1,
     },
     {
-        id: 'tag_id',
+        id: 'pond_id',
         header: 'Tag ID',
-        cell: (pond: Pond) => pond.tag_id,
+        cell: (pond: Pond) => pond.pond_id,
     },
     {
         id: 'location',

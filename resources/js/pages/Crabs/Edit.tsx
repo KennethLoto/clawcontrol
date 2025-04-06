@@ -9,48 +9,44 @@ import AppLayout from '@/layouts/app-layout';
 import { cn } from '@/lib/utils';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, useForm } from '@inertiajs/react';
-import { Badge, BadgeCheck, Check, ChevronsUpDown, CircleX, LoaderCircle } from 'lucide-react';
+import { BadgeCheck, Check, ChevronsUpDown, CircleX, LoaderCircle } from 'lucide-react';
 import { useState } from 'react';
 
-const breadcrumbs = (id: string | number): BreadcrumbItem[] => [
-    {
-        title: 'Crabs',
-        href: '/crabs',
-    },
-    {
-        title: 'Edit',
-        href: `/crabs/${id}/edit`,
-    },
-];
+interface EditProps {
+    crab: {
+        id: string;
+        tag_id: string;
+        species: string;
+        age_value: string;
+        age_unit: string;
+        weight: string;
+        gender: string;
+        health_status: string;
+        pond_id: string;
+    };
+    ponds: Array<{
+        id: string;
+        pond_id: string;
+        location: string;
+    }>;
+    enums: {
+        species: Array<{ value: string; label: string }>;
+        age_unit: Array<{ value: string; label: string }>;
+        gender: Array<{ value: string; label: string }>;
+        health_status: Array<{ value: string; label: string }>;
+    };
+}
 
-const speciesOptions = [{ value: 'Mud Crab', label: 'Mud Crab' }];
-
-const ageUnitOptions = [
-    { value: 'days', label: 'Days' },
-    { value: 'weeks', label: 'Weeks' },
-    { value: 'months', label: 'Months' },
-];
-
-const genderOptions = [
-    { value: 'Male', label: 'Male' },
-    { value: 'Female', label: 'Female' },
-    { value: 'Undetermined', label: 'Undetermined' },
-];
-
-const healthStatusOptions = [
-    { value: 'Healthy', label: 'Healthy' },
-    { value: 'Weak', label: 'Weak' },
-    { value: 'Diseased', label: 'Diseased' },
-];
-
-export default function Edit({ crab }: { crab: any }) {
-    const { data, setData, put, processing, errors, recentlySuccessful } = useForm({
-        species: crab.species || '',
-        age_value: crab.age_value || '',
-        age_unit: crab.age_unit || '',
-        weight: crab.weight || '',
-        gender: crab.gender || '',
-        health_status: crab.health_status || '',
+export default function Edit({ crab, ponds, enums }: EditProps) {
+    const { data, setData, put, processing, errors } = useForm({
+        tag_id: crab.tag_id,
+        species: crab.species,
+        age_value: crab.age_value,
+        age_unit: crab.age_unit,
+        weight: crab.weight,
+        gender: crab.gender,
+        health_status: crab.health_status,
+        pond_id: crab.pond_id,
     });
 
     const [processingCancel, setProcessingCancel] = useState(false);
@@ -64,59 +60,161 @@ export default function Edit({ crab }: { crab: any }) {
         setProcessingCancel(true);
     };
 
+    const breadcrumbs: BreadcrumbItem[] = [
+        {
+            title: 'Crabs',
+            href: '/crabs',
+        },
+        {
+            title: 'Edit',
+            href: `/crabs/${crab.id}/edit`,
+        },
+    ];
+
     return (
-        <AppLayout breadcrumbs={breadcrumbs(crab.id)}>
-            <Head title="Edit Crab" />
+        <AppLayout breadcrumbs={breadcrumbs}>
+            <Head title={`Edit Crab ${crab.tag_id}`} />
             <div className="container mx-auto p-4">
                 <Card className="mx-auto max-w-lg">
                     <CardHeader>
-                        <CardTitle className="flex items-center justify-center gap-2">Edit Crab</CardTitle>
+                        <CardTitle className="text-center">Edit Crab {crab.tag_id}</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <form onSubmit={submit} className="space-y-6">
-                            {/* Species Field */}
+                            {/* Pond Selection Field */}
                             <div className="grid gap-2">
-                                <Label htmlFor="species">Species</Label>
+                                <Label htmlFor="pond_id">Pond</Label>
                                 <Popover>
                                     <PopoverTrigger asChild>
                                         <Button
                                             variant="outline"
                                             role="combobox"
-                                            className={cn('w-full justify-between', !data.species && 'text-muted-foreground')}
+                                            className={cn('w-full justify-between', !data.pond_id && 'text-muted-foreground')}
                                         >
-                                            {data.species
-                                                ? speciesOptions.find((species) => species.value === data.species)?.label
-                                                : 'Select species...'}
+                                            {data.pond_id
+                                                ? ponds.find((pond) => pond.id === data.pond_id)?.pond_id +
+                                                  ' - ' +
+                                                  ponds.find((pond) => pond.id === data.pond_id)?.location
+                                                : 'Select pond...'}
                                             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                                         </Button>
                                     </PopoverTrigger>
                                     <PopoverContent className="w-full p-0">
                                         <Command>
-                                            <CommandInput placeholder="Search species..." />
-                                            <CommandEmpty>No species found.</CommandEmpty>
+                                            <CommandInput placeholder="Search pond by ID or location..." />
+                                            <CommandEmpty>No pond found.</CommandEmpty>
                                             <CommandGroup>
-                                                {speciesOptions.map((species) => (
+                                                {ponds.map((pond) => (
                                                     <CommandItem
-                                                        value={species.value}
-                                                        key={species.value}
+                                                        value={`${pond.pond_id} ${pond.location}`}
+                                                        key={pond.id}
                                                         onSelect={() => {
-                                                            setData('species', species.value);
+                                                            setData('pond_id', pond.id);
                                                         }}
                                                     >
                                                         <Check
-                                                            className={cn(
-                                                                'mr-2 h-4 w-4',
-                                                                data.species === species.value ? 'opacity-100' : 'opacity-0',
-                                                            )}
+                                                            className={cn('mr-2 h-4 w-4', data.pond_id === pond.id ? 'opacity-100' : 'opacity-0')}
                                                         />
-                                                        {species.label}
+                                                        {pond.pond_id} - {pond.location}
                                                     </CommandItem>
                                                 ))}
                                             </CommandGroup>
                                         </Command>
                                     </PopoverContent>
                                 </Popover>
-                                <InputError className="mt-2" message={errors.species} />
+                                <InputError className="mt-2" message={errors.pond_id} />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                {/* Species Field */}
+                                <div className="grid gap-2">
+                                    <Label htmlFor="species">Species</Label>
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <Button
+                                                variant="outline"
+                                                role="combobox"
+                                                className={cn('w-full justify-between', !data.species && 'text-muted-foreground')}
+                                            >
+                                                {data.species
+                                                    ? enums.species.find((species) => species.value === data.species)?.label
+                                                    : 'Select species...'}
+                                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                            </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-full p-0">
+                                            <Command>
+                                                <CommandInput placeholder="Search species..." />
+                                                <CommandEmpty>No species found.</CommandEmpty>
+                                                <CommandGroup>
+                                                    {enums.species.map((species) => (
+                                                        <CommandItem
+                                                            value={species.value}
+                                                            key={species.value}
+                                                            onSelect={() => {
+                                                                setData('species', species.value);
+                                                            }}
+                                                        >
+                                                            <Check
+                                                                className={cn(
+                                                                    'mr-2 h-4 w-4',
+                                                                    data.species === species.value ? 'opacity-100' : 'opacity-0',
+                                                                )}
+                                                            />
+                                                            {species.label}
+                                                        </CommandItem>
+                                                    ))}
+                                                </CommandGroup>
+                                            </Command>
+                                        </PopoverContent>
+                                    </Popover>
+                                    <InputError className="mt-2" message={errors.species} />
+                                </div>
+
+                                {/* Gender Field */}
+                                <div className="grid gap-2">
+                                    <Label htmlFor="gender">Gender</Label>
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <Button
+                                                variant="outline"
+                                                role="combobox"
+                                                className={cn('w-full justify-between', !data.gender && 'text-muted-foreground')}
+                                            >
+                                                {data.gender
+                                                    ? enums.gender.find((gender) => gender.value === data.gender)?.label
+                                                    : 'Select gender...'}
+                                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                            </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-full p-0">
+                                            <Command>
+                                                <CommandInput placeholder="Search gender..." />
+                                                <CommandEmpty>No gender found.</CommandEmpty>
+                                                <CommandGroup>
+                                                    {enums.gender.map((gender) => (
+                                                        <CommandItem
+                                                            value={gender.value}
+                                                            key={gender.value}
+                                                            onSelect={() => {
+                                                                setData('gender', gender.value);
+                                                            }}
+                                                        >
+                                                            <Check
+                                                                className={cn(
+                                                                    'mr-2 h-4 w-4',
+                                                                    data.gender === gender.value ? 'opacity-100' : 'opacity-0',
+                                                                )}
+                                                            />
+                                                            {gender.label}
+                                                        </CommandItem>
+                                                    ))}
+                                                </CommandGroup>
+                                            </Command>
+                                        </PopoverContent>
+                                    </Popover>
+                                    <InputError className="mt-2" message={errors.gender} />
+                                </div>
                             </div>
 
                             {/* Age Fields */}
@@ -129,7 +227,7 @@ export default function Edit({ crab }: { crab: any }) {
                                         value={data.age_value}
                                         onChange={(e) => setData('age_value', e.target.value)}
                                         min="0"
-                                        placeholder="e.g. 3"
+                                        placeholder="e.g. 1"
                                     />
                                     <InputError className="mt-2" message={errors.age_value} />
                                 </div>
@@ -143,7 +241,7 @@ export default function Edit({ crab }: { crab: any }) {
                                                 className={cn('w-full justify-between', !data.age_unit && 'text-muted-foreground')}
                                             >
                                                 {data.age_unit
-                                                    ? ageUnitOptions.find((unit) => unit.value === data.age_unit)?.label
+                                                    ? enums.age_unit.find((unit) => unit.value === data.age_unit)?.label
                                                     : 'Select unit...'}
                                                 <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                                             </Button>
@@ -153,7 +251,7 @@ export default function Edit({ crab }: { crab: any }) {
                                                 <CommandInput placeholder="Search unit..." />
                                                 <CommandEmpty>No unit found.</CommandEmpty>
                                                 <CommandGroup>
-                                                    {ageUnitOptions.map((unit) => (
+                                                    {enums.age_unit.map((unit) => (
                                                         <CommandItem
                                                             value={unit.value}
                                                             key={unit.value}
@@ -178,116 +276,78 @@ export default function Edit({ crab }: { crab: any }) {
                                 </div>
                             </div>
 
-                            {/* Weight Field */}
-                            <div className="grid gap-2">
-                                <Label htmlFor="weight">Weight (g)</Label>
-                                <Input
-                                    id="weight"
-                                    type="number"
-                                    step="0.01"
-                                    value={data.weight}
-                                    onChange={(e) => setData('weight', e.target.value)}
-                                    min="0"
-                                    placeholder="e.g. 1.25"
-                                />
-                                <InputError className="mt-2" message={errors.weight} />
-                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                {/* Weight Field */}
+                                <div className="grid gap-2">
+                                    <Label htmlFor="weight">Weight (g)</Label>
+                                    <Input
+                                        id="weight"
+                                        type="number"
+                                        step="0.01"
+                                        value={data.weight}
+                                        onChange={(e) => setData('weight', e.target.value)}
+                                        min="0"
+                                        placeholder="e.g. 150"
+                                    />
+                                    <InputError className="mt-2" message={errors.weight} />
+                                </div>
 
-                            {/* Gender Field */}
-                            <div className="grid gap-2">
-                                <Label htmlFor="gender">Gender</Label>
-                                <Popover>
-                                    <PopoverTrigger asChild>
-                                        <Button
-                                            variant="outline"
-                                            role="combobox"
-                                            className={cn('w-full justify-between', !data.gender && 'text-muted-foreground')}
-                                        >
-                                            {data.gender ? genderOptions.find((gender) => gender.value === data.gender)?.label : 'Select gender...'}
-                                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                                        </Button>
-                                    </PopoverTrigger>
-                                    <PopoverContent className="w-full p-0">
-                                        <Command>
-                                            <CommandInput placeholder="Search gender..." />
-                                            <CommandEmpty>No gender found.</CommandEmpty>
-                                            <CommandGroup>
-                                                {genderOptions.map((gender) => (
-                                                    <CommandItem
-                                                        value={gender.value}
-                                                        key={gender.value}
-                                                        onSelect={() => {
-                                                            setData('gender', gender.value);
-                                                        }}
-                                                    >
-                                                        <Check
-                                                            className={cn('mr-2 h-4 w-4', data.gender === gender.value ? 'opacity-100' : 'opacity-0')}
-                                                        />
-                                                        {gender.label}
-                                                    </CommandItem>
-                                                ))}
-                                            </CommandGroup>
-                                        </Command>
-                                    </PopoverContent>
-                                </Popover>
-                                <InputError className="mt-2" message={errors.gender} />
-                            </div>
-
-                            {/* Health Status Field */}
-                            <div className="grid gap-2">
-                                <Label htmlFor="health_status">Health Status</Label>
-                                <Popover>
-                                    <PopoverTrigger asChild>
-                                        <Button
-                                            variant="outline"
-                                            role="combobox"
-                                            className={cn('w-full justify-between', !data.health_status && 'text-muted-foreground')}
-                                        >
-                                            {data.health_status
-                                                ? healthStatusOptions.find((status) => status.value === data.health_status)?.label
-                                                : 'Select status...'}
-                                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                                        </Button>
-                                    </PopoverTrigger>
-                                    <PopoverContent className="w-full p-0">
-                                        <Command>
-                                            <CommandInput placeholder="Search status..." />
-                                            <CommandEmpty>No status found.</CommandEmpty>
-                                            <CommandGroup>
-                                                {healthStatusOptions.map((status) => (
-                                                    <CommandItem
-                                                        value={status.value}
-                                                        key={status.value}
-                                                        onSelect={() => {
-                                                            setData('health_status', status.value);
-                                                        }}
-                                                    >
-                                                        <Check
-                                                            className={cn(
-                                                                'mr-2 h-4 w-4',
-                                                                data.health_status === status.value ? 'opacity-100' : 'opacity-0',
-                                                            )}
-                                                        />
-                                                        {status.label}
-                                                    </CommandItem>
-                                                ))}
-                                            </CommandGroup>
-                                        </Command>
-                                    </PopoverContent>
-                                </Popover>
-                                <InputError className="mt-2" message={errors.health_status} />
+                                {/* Health Status Field */}
+                                <div className="grid gap-2">
+                                    <Label htmlFor="health_status">Health Status</Label>
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <Button
+                                                variant="outline"
+                                                role="combobox"
+                                                className={cn('w-full justify-between', !data.health_status && 'text-muted-foreground')}
+                                            >
+                                                {data.health_status
+                                                    ? enums.health_status.find((status) => status.value === data.health_status)?.label
+                                                    : 'Select status...'}
+                                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                            </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-full p-0">
+                                            <Command>
+                                                <CommandInput placeholder="Search status..." />
+                                                <CommandEmpty>No status found.</CommandEmpty>
+                                                <CommandGroup>
+                                                    {enums.health_status.map((status) => (
+                                                        <CommandItem
+                                                            value={status.value}
+                                                            key={status.value}
+                                                            onSelect={() => {
+                                                                setData('health_status', status.value);
+                                                            }}
+                                                        >
+                                                            <Check
+                                                                className={cn(
+                                                                    'mr-2 h-4 w-4',
+                                                                    data.health_status === status.value ? 'opacity-100' : 'opacity-0',
+                                                                )}
+                                                            />
+                                                            {status.label}
+                                                        </CommandItem>
+                                                    ))}
+                                                </CommandGroup>
+                                            </Command>
+                                        </PopoverContent>
+                                    </Popover>
+                                    <InputError className="mt-2" message={errors.health_status} />
+                                </div>
                             </div>
 
                             {/* Submit Button */}
                             <div className="flex items-center justify-end gap-4">
-                                <Button asChild variant="outline" className="border-gray-600" disabled={processingCancel}>
+                                <Button asChild variant="outline" className="border-gray-400" disabled={processingCancel}>
                                     {processingCancel ? (
                                         <span className="flex items-center gap-2">
                                             <LoaderCircle className="h-4 w-4 animate-spin" />
                                             Cancelling...
                                         </span>
                                     ) : (
-                                        <Link href={`/crabs`} className="flex items-center gap-2" onClick={handleCancel}>
+                                        <Link href="/crabs" className="flex items-center gap-2" onClick={handleCancel}>
                                             <CircleX className="h-4 w-4" />
                                             Cancel
                                         </Link>
@@ -296,19 +356,17 @@ export default function Edit({ crab }: { crab: any }) {
 
                                 <Button type="submit" disabled={processing}>
                                     {processing ? (
-                                        <span className="flex items-center gap-2">
+                                        <>
                                             <LoaderCircle className="h-4 w-4 animate-spin" />
-                                            Saving...
-                                        </span>
+                                            Updating...
+                                        </>
                                     ) : (
-                                        <span className="flex items-center gap-2">
+                                        <>
                                             <BadgeCheck className="h-4 w-4" />
-                                            Save Changes
-                                        </span>
+                                            Update Crab
+                                        </>
                                     )}
                                 </Button>
-
-                                {recentlySuccessful && <Badge className="bg-green-500">Updated</Badge>}
                             </div>
                         </form>
                     </CardContent>

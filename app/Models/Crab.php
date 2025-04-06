@@ -21,6 +21,13 @@ class Crab extends Model
         'weight',
         'gender',
         'health_status',
+        'pond_id',
         'removal_reason',
+        'pond_id',
     ];
+
+    public function pond()
+    {
+        return $this->belongsTo(Pond::class);
+    }
 }

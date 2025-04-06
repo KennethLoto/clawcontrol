@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('ponds', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->string('tag_id')->unique()->index();
+            $table->string('pond_id')->unique()->index();
             $table->enum('location', ['Inland Brackish Pond Zone', 'Coastal Pond Zone', 'River Pond Area']);
             $table->float('size');
             $table->enum('water_type', ['Brackish', 'Fresh']);

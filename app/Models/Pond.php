@@ -15,7 +15,7 @@ class Pond extends Model
     protected $dates = ['deleted_at'];
 
     protected $fillable = [
-        'tag_id',
+        'pond_id',
         'location',
         'size',
         'water_type',

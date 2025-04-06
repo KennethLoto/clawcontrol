@@ -33,10 +33,10 @@ class PondController extends Controller
     public function store(StorePondRequest $request)
     {
         // Generate tag_id
-        $tag_id = $this->generateTagId();
+        $pond_id = $this->generateTagId();
 
-        // Merge tag_id into validated data
-        $data = array_merge($request->validated(), ['tag_id' => $tag_id]);
+        // Merge pond_id into validated data
+        $data = array_merge($request->validated(), ['pond_id' => $pond_id]);
 
         // Create crab
         Pond::create($data);
@@ -94,8 +94,8 @@ class PondController extends Controller
     {
         $today = now()->format('Y-m-d');
         $lastSeq = (int) substr(Pond::withTrashed()
-            ->where('tag_id', 'like', "PND-{$today}-%")
-            ->latest('tag_id')->value('tag_id') ?? '', -4);
+            ->where('pond_id', 'like', "PND-{$today}-%")
+            ->latest('pond_id')->value('pond_id') ?? '', -4);
         return "PND-{$today}-" . str_pad($lastSeq > 0 ? $lastSeq + 1 : 1, 4, '0', STR_PAD_LEFT);
     }
 }
