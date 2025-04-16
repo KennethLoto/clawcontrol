@@ -14,14 +14,14 @@ const breadcrumbs: BreadcrumbItem[] = [
         href: '/utilities',
     },
     {
-        title: 'Genders',
-        href: '/utilities/genders',
+        title: 'Crab Types',
+        href: '/utilities/crabTypes',
     },
 ];
 
-interface Gender {
+interface Crab {
     id: number;
-    gender: string;
+    crab_type: string;
     created_at: string;
     updated_at: string;
 }
@@ -31,7 +31,7 @@ type PageProps = {
         success?: string;
         error?: string;
     };
-    genders: Gender[];
+    crab_types: Crab[];
 };
 
 export default function Index() {
@@ -39,7 +39,7 @@ export default function Index() {
     const { flash, genders } = props;
     const [deletingId, setDeletingId] = useState<number | null>(null);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
-    const [genderToDelete, setGenderToDelete] = useState<Gender | null>(null);
+    const [genderToDelete, setGenderToDelete] = useState<Crab | null>(null);
 
     useEffect(() => {
         if (flash?.success) {
@@ -50,16 +50,16 @@ export default function Index() {
         }
     }, [flash]);
 
-    const handleDeleteClick = (gender: Gender) => {
-        setGenderToDelete(gender);
+    const handleDeleteClick = (crab_type: Crab) => {
+        setCrabTypeToDelete(crab_type);
         setIsDialogOpen(true);
     };
 
     const handleConfirmDelete = () => {
-        if (!genderToDelete) return;
+        if (!crab_typeToDelete) return;
 
-        setDeletingId(genderToDelete.id);
-        router.delete(`/utilities/crab/genders/${genderToDelete.id}`, {
+        setDeletingId(crab_typeToDelete.id);
+        router.delete(`/utilities/crab/crabTypes/${crab_typeToDelete.id}`, {
             preserveScroll: true,
             onSuccess: () => {
                 setDeletingId(null);
@@ -90,7 +90,7 @@ export default function Index() {
                             <DialogHeader>
                                 <DialogTitle>Confirm Deletion</DialogTitle>
                                 <DialogDescription>
-                                    Are you sure you want to delete the gender "{genderToDelete?.gender}"? This action cannot be undone.
+                                    Are you sure you want to delete the crab type "{crab_typeToDelete?.crab_type}"? This action cannot be undone.
                                 </DialogDescription>
                             </DialogHeader>
                             <DialogFooter>

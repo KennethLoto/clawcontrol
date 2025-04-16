@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
 import { Link } from '@inertiajs/react';
-import { VenusAndMars } from 'lucide-react';
+import { Dna, VenusAndMars } from 'lucide-react';
 
 export default function UtilitiesIndex() {
     return (
@@ -16,11 +16,7 @@ export default function UtilitiesIndex() {
                                 <CardTitle>Crab Utilities</CardTitle>
                                 <CardDescription>Manage crab-related data</CardDescription>
                             </CardHeader>
-                            <CardContent className="space-y-4">
-                                {/* <Button asChild variant="outline" className="w-full">
-                  <Link href={route('utilities.crab.species')}>Species</Link>
-                </Button> */}
-
+                            <CardContent className="space-y-4 space-x-4">
                                 <Link href="/utilities/crab/genders/" prefetch>
                                     <Button variant="default">
                                         <VenusAndMars className="h-4 w-4"></VenusAndMars>
@@ -28,9 +24,12 @@ export default function UtilitiesIndex() {
                                     </Button>
                                 </Link>
 
-                                {/* <Button asChild variant="outline" className="w-full">
-                  <Link href={route('utilities.crab.health-status')}>Health Status</Link>
-                </Button> */}
+                                <Link href="/utilities/crab/species/" prefetch>
+                                    <Button variant="default">
+                                        <Dna className="h-4 w-4"></Dna>
+                                        Species
+                                    </Button>
+                                </Link>
                             </CardContent>
                         </Card>
 
